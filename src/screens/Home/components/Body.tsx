@@ -3,17 +3,9 @@ import { TbFileUpload } from "react-icons/tb";
 import { useDropzone } from "react-dropzone";
 import { TiWarningOutline } from "react-icons/ti";
 import { ImCancelCircle } from "react-icons/im";
-import SummaryCard from "../../../components/SummaryCard";
-import { db } from "../../../firebase"; // Firestore instance
-import {
-  collection,
-  addDoc,
-  serverTimestamp,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
-import { auth } from "../../../firebase"; // Firebase Auth
+ 
+ 
+
 import RelatedVideos from "../../../components/RelatedVideos";
 import StudyEnhancer, {
   StudyEnhancerProps,
@@ -28,14 +20,6 @@ function Body() {
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Extract the first line (header) of the summary
-  const extractHeader = (summaryText: string): string => {
-    return (
-      summaryText.split("\n")[0].replace("#", "").trim() ||
-      "Educational Content"
-    );
-  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -56,50 +40,7 @@ function Body() {
     maxSize: 5 * 1024 * 1024, // 5MB limit
     multiple: false,
   });
-
-  const summaryExists = async (
-    userId: string,
-    fileName: string,
-    summaryText: string
-  ) => {
-    const q = query(
-      collection(db, "summaries"),
-      where("userId", "==", userId),
-      where("fileName", "==", fileName),
-      where("summary", "==", summaryText)
-    );
-
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty; // Returns true if a matching summary exists
-  };
-
-  const saveSummaryToFirestore = async (summaryText: string) => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const exists = await summaryExists(
-      user.uid,
-      selectedFile!.name,
-      summaryText
-    );
-    if (exists) {
-      console.log("Summary already exists, skipping save.");
-      return;
-    }
-
-    try {
-      await addDoc(collection(db, "summaries"), {
-        userId: user.uid,
-        fileName: selectedFile?.name,
-        summary: summaryText,
-        timestamp: serverTimestamp(),
-      });
-      console.log("Summary saved to Firestore!");
-    } catch (err) {
-      console.error("Error saving summary:", err);
-    }
-  };
-
+ 
   const handleUpload = async () => {
     if (!selectedFile) return;
 

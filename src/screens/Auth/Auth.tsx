@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebase";
 import { useNavigate } from "react-router-dom";
 
 function Auth() {
@@ -13,7 +11,7 @@ function Auth() {
   const [error, setError] = useState("");
 
   // Handle authentication (Sign Up / Sign In)
-  const handleAuth = async (e: React.FormEvent) => {
+ /*  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -35,7 +33,7 @@ function Auth() {
       setError(err.message);
     }
   };
-
+ */
   return (
     <div className="flex flex-col h-screen justify-center items-center px-6">
       {/* Title */}
@@ -48,7 +46,7 @@ function Auth() {
 
       {/* Auth Form */}
       <div className="mt-6 bg-white p-6 md:p-8 shadow-lg rounded-xl w-full max-w-md">
-        <form onSubmit={handleAuth}>
+        <form>
           {/* Email Input */}
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold">Email:</label>

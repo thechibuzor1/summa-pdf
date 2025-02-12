@@ -3,9 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { MdHistory } from "react-icons/md";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import SummaryCard from "../../../components/SummaryCard";
-import { auth, db } from "../../../firebase"; // Import Firestore
-import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
 
 type Summary = {
   id: string;
@@ -18,26 +15,12 @@ function SummaryHistory() {
   const historyRef = useRef<HTMLDivElement>(null);
   const [selectedSummary, setSelectedSummary] = useState<Summary | null>(null);
   const [summaries, setSummaries] = useState<Summary[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  
 
   // Check authentication state
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setIsAuthenticated(true);
-        setUserId(user.uid);
-        fetchUserSummaries(user.uid);
-      } else {
-        //navigate("/auth"); // Redirect if not logged in
-      }
-    });
-
-    return () => unsubscribe();
-  }, [navigate]);
 
   // Fetch user's uploaded summaries from Firestore
-  const fetchUserSummaries = async (uid: string) => {
+  /* const fetchUserSummaries = async (uid: string) => {
     const q = query(collection(db, "summaries"), where("userId", "==", uid));
     const querySnapshot = await getDocs(q);
     const userSummaries = querySnapshot.docs.map((doc) => ({
@@ -45,9 +28,9 @@ function SummaryHistory() {
       ...doc.data(),
     })) as Summary[];
     setSummaries(userSummaries);
-  };
+  }; */
 
-  return isAuthenticated ? (
+  return(
     <div>
       {/* Clickable Header */}
       <div
@@ -95,7 +78,7 @@ function SummaryHistory() {
         </Dialog>
       )}
     </div>
-  ) : null;
+  ) ;
 }
 
 export default SummaryHistory;

@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
-import { auth } from "../../../firebase"; // Import Firebase auth
-import { onAuthStateChanged, signOut } from "firebase/auth";
 
 function Header() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Login state
 
-  // Check auth state on mount
+  /* // Check auth state on mount
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
@@ -26,7 +24,7 @@ function Header() {
     } catch (error) {
       console.error("Logout failed:", error);
     }
-  };
+  }; */
 
   return (
     <header className="flex flex-wrap items-center justify-between gap-2 p-6 border-b bg-white w-full">
@@ -50,7 +48,6 @@ function Header() {
             <MenuItem>
               {({ active }) => (
                 <button
-                  onClick={handleLogout}
                   className={`${
                     active ? "bg-gray-100" : ""
                   } w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100`}

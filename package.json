@@ -11,7 +11,6 @@
     "@types/node": "^16.18.126",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "firebase": "^11.3.0",
     "jspdf": "^2.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
