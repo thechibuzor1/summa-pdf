@@ -34,7 +34,7 @@ function Header() {
       <div className="flex flex-col">
         <h1 className="text-2xl font-bold text-[#008585] leading-none">SummaPDF</h1>
         <h4 className="text-gray-600 text-sm leading-none">
-          AI-Powered PDF Summarization – Fast & Accurate
+        AI-Powered Study Guide
         </h4>
       </div>
 
