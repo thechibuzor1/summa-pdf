@@ -10,27 +10,62 @@ type Summary = {
   summary: string;
 };
 
+const BASE_URL = "https://school-aid.onrender.com"; // ✅ Update with your backend URL
+
 function SummaryHistory() {
   const navigate = useNavigate();
   const historyRef = useRef<HTMLDivElement>(null);
   const [selectedSummary, setSelectedSummary] = useState<Summary | null>(null);
   const [summaries, setSummaries] = useState<Summary[]>([]);
-  
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Check authentication state
+  // Fetch Summaries
+  useEffect(() => {
+    const fetchSummaries = async () => {
+      setLoading(true);
+      setError(null);
 
-  // Fetch user's uploaded summaries from Firestore
-  /* const fetchUserSummaries = async (uid: string) => {
-    const q = query(collection(db, "summaries"), where("userId", "==", uid));
-    const querySnapshot = await getDocs(q);
-    const userSummaries = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Summary[];
-    setSummaries(userSummaries);
-  }; */
+      const token = localStorage.getItem("authToken"); // ✅ Retrieve token
 
-  return(
+      try {
+        const response = await fetch(`${BASE_URL}/api/v1/summaries`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ✅ Send auth token
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch summaries.");
+        }
+
+        console.log("Fetched Summaries:", data);
+
+        // ✅ Extract summaries from response
+        if (data.status === "success" && data.data.summaries) {
+          const formattedSummaries = data.data.summaries.map((item: any) => ({
+            id: item.id,
+            fileName: item.filename,
+            summary: item.content || "Summary not available",
+          }));
+
+          setSummaries(formattedSummaries);
+        }
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSummaries();
+  }, []);
+
+  return (
     <div>
       {/* Clickable Header */}
       <div
@@ -43,7 +78,11 @@ function SummaryHistory() {
 
       {/* History Section */}
       <div ref={historyRef} className="p-6">
-        {summaries.length === 0 ? (
+        {loading ? (
+          <p className="text-gray-500 text-center">Loading summaries...</p>
+        ) : error ? (
+          <p className="text-red-500 text-center">{error}</p>
+        ) : summaries.length === 0 ? (
           <p className="text-gray-500 text-center">No summary history found.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -78,7 +117,7 @@ function SummaryHistory() {
         </Dialog>
       )}
     </div>
-  ) ;
+  );
 }
 
 export default SummaryHistory;

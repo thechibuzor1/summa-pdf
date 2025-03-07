@@ -61,8 +61,8 @@ const RelatedVideos: React.FC<{ header: string }> = ({ header }) => {
   }, [header]);
 
   return (
-    <div className="mt-6 w-full">
-      <h2 className="text-2xl font-semibold mb-4">Related Videos</h2>
+    <div className="mt-10 w-full  md:max-w-[85vw]">
+      <h2 className="text-2xl text-primary font-[700] mb-4">Related Videos</h2>
       {loading && <p className="text-gray-600">Loading videos...</p>}
       {error && <p className="text-red-500">{error}</p>}
 
@@ -96,7 +96,7 @@ const RelatedVideos: React.FC<{ header: string }> = ({ header }) => {
                   <FaPlay className="text-white text-3xl" />
                 </div>
               </div>
-              <p className="mt-2 text-sm font-semibold m-2 truncate">
+              <p className="mt-2 text-lg font-[700] text-black m-2 truncate">
                 {video.title}
               </p>
             </div>

@@ -13,6 +13,7 @@
     "@types/react-dom": "^18.3.5",
     "jspdf": "^2.5.2",
     "react": "^19.0.0",
+    "react-card-flip": "^1.2.3",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.5",
     "react-flashcards": "^0.0.9",

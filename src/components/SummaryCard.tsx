@@ -48,7 +48,7 @@ function SummaryCard({
   return (
     <div
       className="flex p-6 my-6 w-full md:max-w-[75vw] flex-col 
-      bg-[#008585] bg-opacity-5 border rounded-xl justify-center 
+      bg-primary bg-opacity-5 border rounded-xl justify-center 
       flex-grow shadow-lg border-gray-300 mx-auto transition"
     >
       {loading ? (
@@ -56,11 +56,11 @@ function SummaryCard({
       ) : text ? (
         <>
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg text-start font-semibold text-[#008585]">
+            <h3 className="text-lg text-start font-semibold text-primary">
               Summary:
             </h3>
             <HiOutlineDownload 
-              className="cursor-pointer transition hover:text-[#008585]" 
+              className="cursor-pointer transition hover:text-primary" 
               size={25} 
               onClick={handleDownload} // Call download function on click
             />

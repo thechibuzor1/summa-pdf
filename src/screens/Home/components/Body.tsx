@@ -1,17 +1,15 @@
 import React, { useCallback, useState } from "react";
-import { TbFileUpload } from "react-icons/tb";
-import { useDropzone } from "react-dropzone";
-import { TiWarningOutline } from "react-icons/ti";
-import { ImCancelCircle } from "react-icons/im";
- 
- 
+ import { useDropzone } from "react-dropzone";
+
+import upload from "../../../assets/upload.svg"
 
 import RelatedVideos from "../../../components/RelatedVideos";
 import StudyEnhancer, {
   StudyEnhancerProps,
 } from "../../../components/StudyEnhancer";
-import { FiUpload } from "react-icons/fi";
 import Scanning from "../../../components/Scanning";
+import { BASE_URL } from "../../Auth/Auth";
+
 
 function Body() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -40,7 +38,9 @@ function Body() {
     maxSize: 5 * 1024 * 1024, // 5MB limit
     multiple: false,
   });
- 
+
+  
+
   const handleUpload = async () => {
     if (!selectedFile) return;
 
@@ -52,33 +52,87 @@ function Body() {
     formData.append("file", selectedFile);
 
     try {
-      const response = await fetch("http://192.168.100.77:5000/upload", {
-        method: "POST",
-        body: formData,
+        const response = await fetch("https://summa-pdf-backend.onrender.com/upload", {
+            method: "POST",
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Failed to summarize PDF");
+        }
+
+        const rawText = data.summary.candidates[0].content.parts[0].text;
+
+        // Extract the JSON portion safely using regex
+        const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
+
+        if (jsonMatch[1]) {
+            try {
+                const parsedData = JSON.parse(jsonMatch[1]); // Parse JSON
+                setSummary(parsedData);
+                
+                // Save the summary via API call'
+                await saveSummary(parsedData, selectedFile.name)
+
+            } catch (error) {
+                console.error("JSON Parsing Error:", error);
+            }
+        } else {
+            console.error("JSON block not found in response.");
+        }
+    } catch (err: any) {
+        setError(err.message || "Something went wrong.");
+    } finally {
+        setLoading(false);
+    }
+};
+
+// Function to save summary
+const saveSummary = async (parsedData: any, filename: string) => {
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+      console.error("No auth token found. Cannot save summary.");
+      return;
+  }
+
+  try {
+      const response = await fetch(`${BASE_URL}/api/v1/summaries`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+              filename: filename,
+              content:  JSON.stringify(parsedData),
+          })
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to summarize PDF");
+          console.error("Full API response:", result); 
+          throw new Error(result.error || "Failed to save summary.");
       }
 
-      // Ensure data.summary is parsed before setting it
-      const parsedSummary = JSON.parse(data.summary);
-      setSummary(parsedSummary);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  };
+      console.log("Summary saved successfully:", result);
+  } catch (error) {
+      console.error("Error saving summary:", error);
+  }
+};
 
   return (
     <div
       {...getRootProps()}
       className={`flex py-6 flex-col ${
-        isDragActive ? "bg-opacity-20 border-dashed  border-2 " : "bg-opacity-0"
-      }  bg-[#008585] rounded-xl items-center justify-center min-h-[75vh] text-center border-gray-400 w-full mx-auto transition`}
+        isDragActive ? "border-dashed  border-2 " : ""
+      }  
+        
+      
+      rounded-xl items-center justify-center min-h-[75vh] text-center border-gray-400 w-full mx-auto transition`}
     >
       {!selectedFile ? (
         <div className="w-full flex flex-col items-center">
@@ -86,11 +140,11 @@ function Body() {
             <p className="text-gray-600">Drop the file here...</p>
           ) : (
             <>
-              <FiUpload size={40} />
-              <p className="mt-4 font-medium">Drop PDF file or browse</p>
-
+             {/*  <FiUpload size={40} /> */}
+              <p className="mt-4 text-lg  font-[700]">Drag & drop or browse to upload a file</p>
+                <p>(Max File Size: 5MB)</p>
               <button
-                className="bg-[#008585] mt-4 rounded-lg text-white p-2 text-sm font-medium cursor-pointer"
+                className="bg-primary mt-8 rounded-lg text-white p-2 px-6 text-sm font-[600] cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   open(); // Manually open file picker
@@ -101,58 +155,53 @@ function Body() {
 
               <input {...getInputProps()} className="hidden" />
 
-              <div className="flex items-center space-x-1 mt-2 text-red-500">
-                <TiWarningOutline size={14} />
-                <p className="text-[12px] text-red-500">
-                  File size must be less than 5MB
-                </p>
-              </div>
+               
             </>
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center w-full">
+        <div className={`flex flex-col items-center justify-center rounded-lg`}>
           {!loading ? (
             <>
-              <ImCancelCircle
-                onClick={() => setSelectedFile(null)}
-                size={35}
-                className="text-red-600 mb-4 cursor-pointer hover:scale-110 transition"
-              />
-              <TbFileUpload size={50} className="text-[#008585]" />
-              <h1 className="text-xl md:text-2xl font-bold text-[#008585] mt-2">
+               
+              <div className="bg-primary rounded-full flex justify-center items-center w-[50px] h-[50px]"> 
+                <img alt="upload" src={upload} className="w-25 h-25" />
+                </div>
+             
+              <h1 className="text-xl md:text-2xl font-[900] mt-2">
                 File Uploaded
               </h1>
-              <p className="text-gray-600 mt-1 text-sm break-all text-center px-2">
+              <p className="mt-1 break-all font-[700] text-center px-2">
                 {selectedFile.name}
               </p>
-              {!summary && (
+              {!summary? (
                 <button
-                  className="bg-[#008585] shadow-lg mt-6 rounded-xl text-white p-3 font-semibold"
+                  className="bg-primary shadow-lg mt-6 rounded-lg text-white p-2 px-6 font-[600]"
                   onClick={handleUpload}
                   disabled={loading}
                 >
-                  {loading ? "Summarizing..." : "Get Summary"}
+                  {loading ? "Generating..." : "Get Study Guide"}
                 </button>
-              )}
+              ): <button
+                  className="bg-primary shadow-lg mt-6 rounded-lg text-white p-2 px-6 font-[600]"
+                  onClick={() => setSelectedFile(null)}
+                  disabled={loading}
+                >
+                 Close
+                </button>
+              }
+             
               {error && <p className="text-red-500 mt-4">{error}</p>}
             </>
           ) : (
             <Scanning />
           )}
-
-          {/* {(loading || summary) && (
-            <SummaryCard
-              fileName={selectedFile.name}
-              text={summary}
-              loading={loading}
-            />
-          )} */}
-
-          {summary && <StudyEnhancer response={summary} fileName={selectedFile.name}/>}
+          {summary && (
+            <StudyEnhancer response={summary} fileName={selectedFile.name} />
+          )}
 
           {summary && (
-            <RelatedVideos header={summary.study_guide.sections[0]?.title} />
+            <RelatedVideos header={summary?.study_guide!.sections[0]?.title} />
           )}
         </div>
       )}

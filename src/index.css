@@ -4,22 +4,30 @@
 
 body {
   margin: 0;
-  font-family: 'Open Sans';
+  font-family: Lato;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #FBFBFB;
 }
 
 h1{
-  font-size: x-large;
+   
   font-weight: 700;
   line-height: 1;
 }
 
+p{
+  font-weight: 700;
+}
+
 h4{
   font-size: small;
-  color: gray;
+  color: #303030;
   line-height: 1;
+  font-weight: 700; 
+  letter-spacing: 0%;
 }
+
 code {
-  font-family:'Open Sans';
+  font-family: Lato;
 }

@@ -2,46 +2,55 @@ import React from "react";
 import StudyGuide from "./StudyGuide";
 import Flashcards from "./Flashcards";
 import Quiz from "./Quiz";
-import AdaptiveLearning from "./AdaptiveLearning";
-import CollaborationTools from "./CollaborationTools";
-import ContextualEnhancements from "./ContextualEnhancements";
+
+
 import { HiOutlineDownload } from "react-icons/hi";
 import { jsPDF } from "jspdf";
-
+import Summary from "./Summary";
 
 export interface StudyEnhancerProps {
   response: {
-    study_guide: {
-      sections: {
-        title: string;
-        content: string;
-        key_takeaways: string[];
-        misconceptions: { misunderstanding: string; clarification: string }[];
-        real_world_applications: string[];
-        diagrams: string[];
-      }[];
+    summary?: {
+      key_points: string[];
     };
-    flashcards: { term: string; definition: string }[];
-    quiz: {
+    flashcards?: {
+      term: string;
+      definition: string;
+    }[];
+    quiz?: {
       questions: {
         question: string;
-        type: string;
+        type: "multiple_choice" | "short_answer";
         options?: string[];
         answer: string;
         explanation: string;
       }[];
     };
-    adaptive_learning: {
+    study_guide?: {
+      sections: {
+        title: string;
+        summary: string;
+        comparisons?: {
+          concept_a: string;
+          concept_b: string;
+          difference: string;
+        }[];
+        real_world_applications?: string[];
+        common_misconceptions?: {
+          misunderstanding: string;
+          clarification: string;
+        }[];
+      }[];
+    };
+    adaptive_learning?: {
       difficulty_analysis: string;
       recommended_review_topics: string[];
-      suggested_resources: string[];
     };
-    collaboration_tools: {
+    collaboration_tools?: {
       discussion_prompts: string[];
       group_exercises: string[];
     };
-    contextual_enhancements: {
-      visual_aids: string[];
+    contextual_enhancements?: {
       historical_context: string;
       real_world_examples: string[];
     };
@@ -50,133 +59,171 @@ export interface StudyEnhancerProps {
 }
 
 const StudyEnhancer: React.FC<StudyEnhancerProps> = ({ response, fileName }) => {
-  if (
-    !response ||
-    !response.study_guide ||
-    !response.study_guide.sections ||
-    !Array.isArray(response.study_guide.sections)
-  ) {
-    return <p>Loading study materials...</p>; // Prevent crash if data is missing
+  if (!response?.study_guide?.sections) {
+    return <p>Loading study materials...</p>;
   }
 
   const handleDownload = () => {
     if (!response || !fileName) return;
-
+  
     const pdf = new jsPDF();
     const marginLeft = 10;
     const marginTop = 20;
+    const pageWidth = pdf.internal.pageSize.width - 20;
     const pageHeight = pdf.internal.pageSize.height;
     const lineHeight = 8;
     let y = marginTop;
-
-    const addSectionTitle = (title: string) => {
-      pdf.setFontSize(14);
+  
+    const checkPageLimit = () => {
       if (y + lineHeight > pageHeight - 20) {
         pdf.addPage();
         y = marginTop;
       }
+    };
+  
+    const addTitle = (title:any, size = 14) => {
+      pdf.setFontSize(size);
+      checkPageLimit();
       pdf.text(title, marginLeft, y);
-      y += lineHeight;
+      y += lineHeight * 1.5;
       pdf.setFontSize(12);
     };
-
-    const addText = (text: string) => {
-      const lines = pdf.splitTextToSize(text, 180);
-      lines.forEach((line:any) => {
-        if (y + lineHeight > pageHeight - 20) {
-          pdf.addPage();
-          y = marginTop;
-        }
+  
+    const addBulletList = (title:any, items:any) => {
+      if (items?.length) {
+        addTitle(title);
+        items.forEach((item:any) => {
+          checkPageLimit();
+          const wrappedText = pdf.splitTextToSize(`• ${item}`, pageWidth);
+          wrappedText.forEach((line:any) => {
+            pdf.text(line, marginLeft, y);
+            y += lineHeight;
+          });
+        });
+        y += lineHeight * 0.5;
+      }
+    };
+  
+    const addParagraph = (text: string, bold = false) => {
+      if (!text) return;
+    
+      pdf.setFont("helvetica", bold ? "bold" : "normal");
+    
+      const wrappedText = pdf.splitTextToSize(text, pageWidth); // Ensure proper wrapping
+    
+      wrappedText.forEach((line: string) => {
+        checkPageLimit(); // Prevents overflow
         pdf.text(line, marginLeft, y);
         y += lineHeight;
       });
+    
+      y += lineHeight * 0.5; // Ensure proper spacing between paragraphs
     };
-
-    // Add Study Guide Sections
-    addSectionTitle("Study Guide");
-    response.study_guide.sections.forEach((section: any, index: number) => {
-      addSectionTitle(`${index + 1}. ${section.title}`);
-      addText(section.content);
-      addSectionTitle("Key Takeaways:");
-      section.key_takeaways.forEach((point: string) => addText(`- ${point}`));
-
-      if (section.misconceptions.length > 0) {
-        addSectionTitle("Common Misconceptions:");
-        section.misconceptions.forEach((m: any) =>
-          addText(`Misunderstanding: ${m.misunderstanding}\nClarification: ${m.clarification}`)
+    
+    
+  
+   
+  
+    // **Summary Key Points**
+    addBulletList("Summary Key Points", response.summary?.key_points);
+  
+    // **Study Guide Sections**
+    response.study_guide?.sections?.forEach((section, index) => {
+      addTitle(`${index + 1}. ${section.title}`);
+      addParagraph(section.summary);
+  
+      if (section.comparisons?.length) {
+        addTitle("Comparisons", 12);
+      
+        section.comparisons.forEach(({ concept_a, concept_b, difference }) => {
+          addParagraph(`${concept_a} vs ${concept_b}:`, true); // Bold title
+          addParagraph(difference); // Normal text
+          y += lineHeight * 0.5; // Slight spacing
+        });
+      }
+  
+      addBulletList("Real-World Applications", section.real_world_applications);
+      addBulletList(
+        "Common Misconceptions",
+        section.common_misconceptions?.map(
+          (m) => `Misunderstanding: ${m.misunderstanding}\nClarification: ${m.clarification}`
+        )
+      );
+    });
+  
+    // **Flashcards**
+    if (response.flashcards?.length) {
+      addTitle("Flashcards");
+    
+      response.flashcards.forEach(({ term, definition }) => {
+        checkPageLimit();
+        
+        // Ensure term is bold and properly wrapped
+        pdf.setFont("helvetica", "bold");
+        const termWrapped = pdf.splitTextToSize(`${term}:`, pageWidth);
+        termWrapped.forEach((line: string) => {
+          checkPageLimit();
+          pdf.text(line, marginLeft, y);
+          y += lineHeight;
+        });
+    
+        // Ensure definition is wrapped properly
+        pdf.setFont("helvetica", "normal");
+        const definitionWrapped = pdf.splitTextToSize(definition, pageWidth);
+        definitionWrapped.forEach((line: string) => {
+          checkPageLimit();
+          pdf.text(line, marginLeft, y);
+          y += lineHeight;
+        });
+    
+        y += lineHeight * 0.5; // Space between flashcards
+      });
+    }
+    
+    
+    
+  
+    // **Quiz Questions**
+    response.quiz?.questions?.forEach((q, index) => {
+      addTitle(`Q${index + 1}: ${q.question}`, 12);
+      if (q.type === "multiple_choice") {
+        q.options?.forEach((option, i) =>
+          addParagraph(`${String.fromCharCode(65 + i)}. ${option}`)
         );
       }
-
-      if (section.real_world_applications.length > 0) {
-        addSectionTitle("Real-World Applications:");
-        section.real_world_applications.forEach((app: string) =>
-          addText(`- ${app}`)
-        );
-      }
+      addParagraph(`Answer: ${q.answer}`);
+      addParagraph(`Explanation: ${q.explanation}`);
     });
-
-    // Add Flashcards
-    addSectionTitle("Flashcards");
-    response.flashcards.forEach((flashcard: any) => {
-      addText(`${flashcard.term}: ${flashcard.definition}`);
-    });
-
-    // Add Quiz Questions
-    addSectionTitle("Quiz Questions");
-    response.quiz.questions.forEach((q: any, index: number) => {
-      addText(`${index + 1}. ${q.question}`);
-      if (q.options) {
-        q.options.forEach((option: string, i: number) =>
-          addText(`${String.fromCharCode(65 + i)}. ${option}`)
-        );
-      }
-      addText(`Answer: ${q.answer}`);
-      addText(`Explanation: ${q.explanation}`);
-    });
-
-    // Add Adaptive Learning
-    addSectionTitle("Adaptive Learning");
-    addText(`Difficulty Analysis: ${response.adaptive_learning.difficulty_analysis}`);
-    addSectionTitle("Recommended Review Topics:");
-    response.adaptive_learning.recommended_review_topics.forEach((topic: string) => addText(`- ${topic}`));
-
-    // Add Collaboration Tools
-    addSectionTitle("Collaboration Tools");
-    addSectionTitle("Discussion Prompts:");
-    response.collaboration_tools.discussion_prompts.forEach((prompt: string) => addText(`- ${prompt}`));
-    addSectionTitle("Group Exercises:");
-    response.collaboration_tools.group_exercises.forEach((exercise: string) => addText(`- ${exercise}`));
-
-    // Add Contextual Enhancements
-    addSectionTitle("Contextual Enhancements");
-    addText(`Historical Context: ${response.contextual_enhancements.historical_context}`);
-    addSectionTitle("Real-World Examples:");
-    response.contextual_enhancements.real_world_examples.forEach((example: string) => addText(`- ${example}`));
-
-    // Format and save the file
-    const formattedFileName = fileName.replace(/\.[^/.]+$/, ""); // Remove extension
+  
+    // **Save PDF**
+    const formattedFileName = fileName.replace(/\.[^/.]+$/, "");
     pdf.save(`${formattedFileName}-study-guide.pdf`);
   };
- 
-  return (
-    <div className="p-4 mt-6 w-full border rounded-xl shadow-lg bg-[#008585] bg-opacity-5 md:max-w-[75vw]">
-      <div className="flex justify-between items-center mb-4">
-      <h2 className="text-xl text-start font-semibold">
-        Interactive Study Tools
-      </h2>
-        <HiOutlineDownload
-          className="cursor-pointer transition hover:text-[#008585]"
-          size={30}
-          onClick={handleDownload} // Call download function on click
-        />
-      </div>
+  
+  
+  
 
+  
+  
+
+  return (
+    <div className="p-6 mt-6 w-full border rounded-xl  md:max-w-[85vw]">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg text-start font-[700]">{fileName}</h2>
+        <div className="bg-[#CACACA] flex justify-center items-center rounded-full w-[50px] h-[50px]">
+        <HiOutlineDownload
+          className="cursor-pointer transition hover:text-primary"
+          size={25}
+          onClick={handleDownload}
+        /></div>
+      </div>
+      <Summary keyPoints={response.summary?.key_points} />
       <StudyGuide sections={response.study_guide.sections} />
-      <Flashcards flashcards={response.flashcards || []} />
-      <Quiz questions={response.quiz?.questions || []} />
-      <AdaptiveLearning data={response.adaptive_learning || {}} />
+      <Flashcards flashcards={response?.flashcards || []} />
+      <Quiz questions={response?.quiz?.questions || []} />
+  {/*     <AdaptiveLearning data={response.adaptive_learning || {}} />
       <CollaborationTools data={response.collaboration_tools || {}} />
-      <ContextualEnhancements data={response.contextual_enhancements || {}} />
+      <ContextualEnhancements data={response.contextual_enhancements || {}} /> */}
     </div>
   );
 };
