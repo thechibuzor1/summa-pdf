@@ -5,21 +5,25 @@ import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import SummaryCard from "../../../components/SummaryCard";
 import StudyEnhancer, { StudyEnhancerProps } from "../../../components/StudyEnhancer";
 import RelatedVideos from "../../../components/RelatedVideos";
+import { GoTrash } from "react-icons/go";
 
  
 
 const BASE_URL = "https://school-aid.onrender.com"; // ✅ Update with your backend URL
 
 function SummaryHistory() {
-  const navigate = useNavigate();
   const historyRef = useRef<HTMLDivElement>(null);
  
   const [summaries, setSummaries] = useState([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0); 
 
-   const [selectedSummary, setSelectedSummary] = useState<any>();
-   const [selectedFileName, setSelectedFileName] = useState<string>("")
+  const [selectedSummary, setSelectedSummary] = useState<{
+    id: string;
+    fileName: string;
+    summary: any;
+  } | null>(null);
 
   // Fetch Summaries
   useEffect(() => {
@@ -65,7 +69,7 @@ function SummaryHistory() {
     
 
     fetchSummaries();
-  }, []);
+  }, [refreshKey]);
 
   async function fectchById(id:string){
     
@@ -88,20 +92,50 @@ function SummaryHistory() {
           throw new Error(data.message || "Failed to fetch summaries.");
         }
 
-        if(data.status === "success" && data.data){
-          setSelectedSummary(JSON.parse(data.data.summary.content));
-          setSelectedFileName(data.data.summary.filename);
+        if(data.status === "success" && data.data){     
+          setSelectedSummary({
+            id: id,
+            fileName: data.data.summary.filename,
+            summary: JSON.parse(data.data.summary.content),
+          });
+        
+         
         }
     
        
          
       } catch (err: any) {
         setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+      }  
   
   };
+
+  async function deleteById(id:string){
+   setSelectedSummary(null);
+    setError(null);
+
+    const token = localStorage.getItem("authToken"); // ✅ Retrieve token
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/v1/summaries/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ Send auth token
+        },
+      });
+    if (!response.ok) {
+      throw new Error("Failed to delete");
+    }
+    // Trigger re-fetch by updating refreshKey
+    setRefreshKey((prev) => prev + 1);
+ 
+       
+    } catch (err: any) {
+      setError(err.message);
+    }  
+
+};
 
 
 
@@ -113,17 +147,16 @@ function SummaryHistory() {
       return <p className="text-red-500 text-center">{error}</p>;
     }
     if (summaries.length === 0) {
-      return <p className="text-gray-500 text-center">No summary history found.</p>;
+      return <p className="text-gray-500 text-center">No history found.</p>;
     }
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {summaries.map((item: any) => (
-          
-          <div
-            key={item.id}
-            className="p-4 border rounded-lg transition cursor-pointer "
-            onClick={() => fectchById(item.id)}
-          >
+          <div  key={item.id}
+          className="p-4 border  rounded-lg transition cursor-pointer "
+          onClick={() => fectchById(item.id)}
+        >
+         
              
             <h4 className="font-[700] text-black text-base">{item.fileName}</h4>
             <p className="font-medium text-sm">{new Date(item.date).toLocaleDateString("en-GB", {
@@ -132,6 +165,9 @@ function SummaryHistory() {
                                                     year: "numeric",
                                                   })}</p>
           </div>
+
+
+    
         ))}
       </div>
     );
@@ -155,15 +191,24 @@ function SummaryHistory() {
     
       {selectedSummary ? (
         <div className="flex flex-col items-center justify-center rounded-lg">
+          <div className="flex items-center gap-6  mt-6">
+          <GoTrash 
+            className="text-red-500 cursor-pointer"
+            onClick={() => deleteById(selectedSummary?.id)} 
+            size={25}
+            />
+
            <button
-                  className="bg-primary shadow-lg mt-6 rounded-lg text-white p-2 px-6 font-[600]"
+                  className="bg-primary shadow-lg rounded-lg text-white p-2 px-6 font-[600]"
                   onClick={() => setSelectedSummary(null)}
                   disabled={loading}
                 >
                  Close
-                </button>
-        <StudyEnhancer response={selectedSummary} fileName={selectedFileName} />
-        <RelatedVideos header={selectedSummary?.study_guide!.sections[0]?.title} />
+          </button>
+               
+                  </div>
+        <StudyEnhancer response={selectedSummary?.summary} fileName={selectedSummary?.fileName} />
+        <RelatedVideos header={selectedSummary?.summary?.study_guide!.sections[0]?.title} />
         </div>
        
       ) :

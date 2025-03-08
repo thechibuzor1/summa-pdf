@@ -20,7 +20,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = (token: string) => {
     localStorage.setItem("authToken", token);
-    console.log(token);
     setIsLoggedIn(true);
   };
 
