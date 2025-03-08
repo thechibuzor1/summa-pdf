@@ -199,9 +199,11 @@ const saveSummary = async (parsedData: any, filename: string) => {
             <StudyEnhancer response={summary} fileName={selectedFile.name} />
           )}
 
+          
           {summary && (
             <RelatedVideos header={summary?.study_guide!.sections[0]?.title} />
           )}
+           
         </div>
       )}
     </div>

@@ -1,17 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect, useContext } from "react";
 import { MdHistory } from "react-icons/md";
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import SummaryCard from "../../../components/SummaryCard";
-import StudyEnhancer, { StudyEnhancerProps } from "../../../components/StudyEnhancer";
+import StudyEnhancer from "../../../components/StudyEnhancer";
 import RelatedVideos from "../../../components/RelatedVideos";
 import { GoTrash } from "react-icons/go";
+import { AuthContext } from "../../../context/AuthContext";
+import { BASE_URL } from "../../Auth/Auth";
 
- 
-
-const BASE_URL = "https://school-aid.onrender.com"; // ✅ Update with your backend URL
 
 function SummaryHistory() {
+  const { logout } = useContext(AuthContext)!;
   const historyRef = useRef<HTMLDivElement>(null);
  
   const [summaries, setSummaries] = useState([]);
@@ -60,7 +57,13 @@ function SummaryHistory() {
           setSummaries(formattedSummaries);
         }
       } catch (err: any) {
-        setError(err.message);
+        if(err.message === "jwt expired"){
+          setError("session expired. please login");
+          logout();
+        }else{
+          setError(err.message);
+        }
+        
       } finally {
         setLoading(false);
       }
@@ -105,8 +108,13 @@ function SummaryHistory() {
        
          
       } catch (err: any) {
-        setError(err.message);
-      }  
+        if(err.message === "jwt expired"){
+          setError("session expired. please login");
+          logout();
+        }else{
+          setError(err.message);
+        }
+      }
   
   };
 
@@ -132,8 +140,13 @@ function SummaryHistory() {
  
        
     } catch (err: any) {
-      setError(err.message);
-    }  
+      if(err.message === "jwt expired"){
+        setError("session expired. please login");
+        logout();
+      }else{
+        setError(err.message);
+      }
+    }
 
 };
 
