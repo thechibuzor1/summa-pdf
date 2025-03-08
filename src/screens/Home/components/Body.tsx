@@ -118,7 +118,6 @@ const saveSummary = async (parsedData: any, filename: string) => {
           throw new Error(result.error || "Failed to save summary.");
       }
 
-      console.log("Summary saved successfully:", result);
   } catch (error) {
       console.error("Error saving summary:", error);
   }
