@@ -11,7 +11,7 @@ function Header() {
   return (
     <header className="flex flex-wrap items-center justify-between p-6 md:px-12 py-3 border-b bg-white w-full">
       <div className="flex flex-col">
-        <h1 className="text-2xl font-bold text-primary">EduSphere</h1>
+        <h1 className="text-2xl font-bold text-primary">Study Guide Support System</h1>
         <h4 className="text-base">AI-Powered Study Guide</h4>
       </div>
 

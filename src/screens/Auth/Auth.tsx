@@ -50,7 +50,7 @@ const Auth: React.FC = () => {
   return (
     <div className="flex flex-col h-screen justify-center items-center px-6">
       <h1 className="text-5xl md:text-6xl font-bold text-primary text-center leading-none">
-        EduSphere
+      Study Guide Support System
       </h1>
       <h4 className="text-gray-600 text-center text-sm md:text-base mt-2">
         AI-Powered Study Guide
