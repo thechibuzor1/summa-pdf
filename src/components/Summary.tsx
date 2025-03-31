@@ -1,6 +1,6 @@
 import React from "react";
 
-interface SummaryProps {
+export interface SummaryProps {
   keyPoints?: string[];
 }
 

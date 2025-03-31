@@ -10,8 +10,13 @@ function Header() {
 
   return (
     <header className="flex flex-wrap items-center justify-between p-6 md:px-12 py-3 border-b bg-white w-full">
-      <div className="flex flex-col">
-        <h1 className="text-2xl font-bold text-primary">Study Guide Support System</h1>
+      <div
+        className="flex flex-col cursor-pointer"
+        onClick={() => navigate("/")}
+      >
+        <h1 className="text-2xl font-bold text-primary">
+          Study Guide Support System
+        </h1>
         <h4 className="text-base">AI-Powered Study Guide</h4>
       </div>
 
@@ -24,7 +29,15 @@ function Header() {
           <MenuItems className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-md overflow-hidden">
             <MenuItem>
               {({ active }) => (
-                <button onClick={() => { logout(); navigate("/auth"); }} className={`w-full text-left px-4 py-2 text-red-600 ${active ? "bg-gray-100" : ""}`}>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate("/auth");
+                  }}
+                  className={`w-full text-left px-4 py-2 text-red-600 ${
+                    active ? "bg-gray-100" : ""
+                  }`}
+                >
                   Logout
                 </button>
               )}
@@ -32,7 +45,12 @@ function Header() {
           </MenuItems>
         </Menu>
       ) : (
-        <button onClick={() => navigate("/auth")} className="bg-primary text-white px-6 py-2 rounded-lg">Sign In</button>
+        <button
+          onClick={() => navigate("/auth")}
+          className="bg-primary text-white px-6 py-2 rounded-lg"
+        >
+          Sign In
+        </button>
       )}
     </header>
   );
