@@ -27,7 +27,7 @@ function QuizRoom() {
   const fetchQuiz = async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://summa-pdf-backend.onrender.com/quiz", {
+      const response = await fetch("http://localhost:5000/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ context }),
@@ -39,6 +39,7 @@ function QuizRoom() {
         const match = data.quiz.match(/```json\n([\s\S]*?)\n```/);
         if (match) {
           const parsedData = JSON.parse(match[1]);
+
           setQuiz(parsedData.quiz);
         }
       } else if (Array.isArray(data.quiz)) {
@@ -65,7 +66,7 @@ function QuizRoom() {
     setScore(0); // Reset score
     setCompleted(false); // Ensure quiz is active
     setUserInput(""); // Clear input
-  
+
     fetchQuiz();
   };
 
@@ -118,11 +119,14 @@ function QuizRoom() {
   ) => {
     setLoadingIndex(index); // Show loading for this question
     try {
-      const response = await fetch("https://summa-pdf-backend.onrender.com/explain", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, correctAnswer }),
-      });
+      const response = await fetch(
+        "https://summa-pdf-backend.onrender.com/explain",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question, correctAnswer }),
+        }
+      );
 
       const data = await response.json();
 
@@ -287,11 +291,13 @@ function QuizRoom() {
           )}
 
           {/* Fill in the Blank */}
-          {quiz[currentIndex]?.type === "fill_in_blank" && (
+          {["fill_in_blank", "fill_in_the_blank"].includes(
+            quiz[currentIndex]?.type
+          ) && (
             <div className="flex flex-col items-center space-y-3">
               <input
                 type="text"
-                className="border-2 focus:outline-none border-gray-400 p-3 rounded-lg text-lg w-full text-center"
+                className="border-2 focus:outline-none border-gray-400 p-3 rounded-lg text-lg w-full text-center block"
                 placeholder="Type your answer..."
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
@@ -303,7 +309,7 @@ function QuizRoom() {
                     : "bg-gray-400 text-gray-200 cursor-not-allowed"
                 }`}
                 onClick={() => handleAnswer(userInput)}
-                disabled={!userInput.trim()} // Prevents empty submissions
+                disabled={!userInput.trim()}
               >
                 Submit Answer
               </button>
