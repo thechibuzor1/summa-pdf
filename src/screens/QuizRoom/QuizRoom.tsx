@@ -27,7 +27,7 @@ function QuizRoom() {
   const fetchQuiz = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/quiz", {
+      const response = await fetch("https://summa-pdf-backend.onrender.com/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ context }),
