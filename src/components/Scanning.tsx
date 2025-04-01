@@ -1,43 +1,85 @@
 import React, { useState, useEffect } from "react";
-import Lottie from "react-lottie";
-import animationData from "../assets/scanning.json";
+import Lottie, { Options as LottieOptions } from "react-lottie";
+import scanning from "../assets/scanning.json";
+import gears from "../assets/gears.json";
+import bubbles from "../assets/bubbles.json";
+
+interface LottieAnimation {
+  v: string;
+  fr: number;
+  ip: number;
+  op: number;
+  w: number;
+  h: number;
+  ddd: number;
+  assets: any[];
+  layers: any[];
+}
 
 function Scanning() {
-  const defaultOptions: any = {
-    loop: true,
-    autoplay: true,
-    animationData: animationData,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
+   
+  const statuses = [
+    "Processing file...",
+    "Extracting text from file...",
+    "Generating study guide...",
+    "Identifying key points...",
+    "Generating flashcards...",
+    "Creating quiz questions...",
+    "Fetching related resources...",
+    "Almost done!",
+  ];
 
+  const totalSteps = statuses.length;
   const [statusIndex, setStatusIndex] = useState(0);
-  const statuses = ["Processing File...", 
-    "Extracting Text from file...", 
-    "Generating Study guide",
-    "Generating Keypoints...",
-    "Generating Flashcards...",
-    "Generating quiz questions...",
-    "Generating Related Videos...",
-    "Almost there..."];
+  const [progress, setProgress] = useState(0);
+  const [animation, setAnimation] = useState<LottieAnimation>(scanning);
 
   useEffect(() => {
-    if (statusIndex < statuses.length - 1) {
+    if (statusIndex < totalSteps - 1) {
       const timeout = setTimeout(() => {
         setStatusIndex((prevIndex) => prevIndex + 1);
-      }, 3000); // ✅ Transition every 3 seconds
+        setProgress(((statusIndex + 1) / totalSteps) * 100);
+
+        // Ensure correct animation switching
+        if (statusIndex === 2) setAnimation(gears);
+        if (statusIndex === totalSteps - 2) setAnimation(bubbles);
+      }, 4000);
 
       return () => clearTimeout(timeout);
     }
-  }, [statusIndex, statuses.length]);
+  }, [statusIndex]);
+
+  const lottieOptions: LottieOptions = {
+    loop: true, // Stop animation at last stage
+    autoplay: true,
+    animationData: animation,
+    rendererSettings: { preserveAspectRatio: "xMidYMid slice" },
+  };
 
   return (
-    <div className="flex flex-col items-center">
-      <Lottie options={defaultOptions} height={250} width={250} />
-      <p className="mt-2 text-lg font-[700] text-gray-700 transition-opacity duration-700 ease-in-out">
+    <div className="flex flex-col items-center space-y-4 p-6">
+      {/* Corrected Lottie Usage */}
+      <Lottie options={lottieOptions} height={250} width={250} />
+
+      {/* Progress Bar */}
+      <div className="w-full max-w-md bg-gray-300 rounded-full h-3 relative">
+        <div
+          className="bg-primary h-full rounded-full transition-all duration-500 ease-in-out"
+          style={{ width: `${progress}%` }}
+        ></div>
+      </div>
+
+      {/* Status Message */}
+      <p className="mt-2 text-lg font-semibold text-gray-700 animate-fade">
         {statuses[statusIndex]}
       </p>
+
+      {/* Estimated Time */}
+      {statusIndex < totalSteps - 1 && (
+        <p className="text-gray-500 text-sm">
+          Estimated time remaining: ~{(totalSteps - statusIndex) * 3} sec
+        </p>
+      )}
     </div>
   );
 }

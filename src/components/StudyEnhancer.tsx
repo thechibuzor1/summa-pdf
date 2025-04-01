@@ -216,11 +216,11 @@ const StudyEnhancer: React.FC<StudyEnhancerProps> = ({
               />
             ) : (
               <RiChatAiLine
-                className="cursor-pointer transition hover:text-primary"
+                className="cursor-pointer transition hover:text-primary animate-bounce"
                 size={25}
                 onClick={() => setShowAssistant(!showAssistant)}
               />
-            )}{" "}
+            )}
           </div>
           <div className="bg-[#CACACA] flex justify-center items-center rounded-full w-[50px] h-[50px]">
             <HiOutlineDownload
@@ -238,10 +238,15 @@ const StudyEnhancer: React.FC<StudyEnhancerProps> = ({
 
       <Summary keyPoints={response.summary?.key_points} />
       <StudyGuide sections={response.study_guide.sections} />
-      <Flashcards  context={response.summary?.key_points} flashcards={response?.flashcards || []} />
-      <Quiz context={response.summary?.key_points} questions={response?.quiz?.questions || []} />
-
-      </div>
+      <Flashcards
+        context={response.summary?.key_points}
+        flashcards={response?.flashcards || []}
+      />
+      <Quiz
+        context={response.summary?.key_points}
+        questions={response?.quiz?.questions || []}
+      />
+    </div>
   );
 };
 

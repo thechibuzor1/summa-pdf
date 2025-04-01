@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../Home/components/Header";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { RiArrowGoBackLine } from "react-icons/ri";
 import { IoArrowForward } from "react-icons/io5";
+import { FaArrowLeftLong } from "react-icons/fa6";
+import gears from "../../assets/gears.json";
+import Lottie from "react-lottie";
 
 type Question = {
   question: string;
@@ -15,6 +18,7 @@ type Question = {
 
 function QuizRoom() {
   const location = useLocation();
+  const navigate = useNavigate();
   const context = location.state?.context || "No context provided.";
 
   const [quiz, setQuiz] = useState<Question[]>([]);
@@ -24,14 +28,19 @@ function QuizRoom() {
   const [completed, setCompleted] = useState(false);
   const [userInput, setUserInput] = useState("");
 
+  const [flashColor, setFlashColor] = useState<string>("bg-white");
+
   const fetchQuiz = async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://summa-pdf-backend.onrender.com/quiz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context }),
-      });
+      const response = await fetch(
+        "https://summa-pdf-backend.onrender.com/quiz",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ context }),
+        }
+      );
 
       const data = await response.json();
 
@@ -71,19 +80,25 @@ function QuizRoom() {
   };
 
   const handleAnswer = (answer: string | boolean) => {
-    if (
+    const isCorrect =
       String(quiz[currentIndex].correctAnswer).toLowerCase() ===
-      String(answer).toLowerCase()
-    ) {
+      String(answer).toLowerCase();
+
+    if (isCorrect) {
       setScore((prevScore) => prevScore + 1);
     }
 
-    if (currentIndex + 1 < quiz.length) {
-      setCurrentIndex((prev) => prev + 1);
-      setUserInput("");
-    } else {
-      setCompleted(true);
-    }
+    setFlashColor(isCorrect ? "bg-green-300" : "bg-red-300");
+
+    setTimeout(() => {
+      setFlashColor("bg-white");
+      if (currentIndex + 1 < quiz.length) {
+        setCurrentIndex((prev) => prev + 1);
+        setUserInput("");
+      } else {
+        setCompleted(true);
+      }
+    }, 500);
   };
 
   const percentage = (score / quiz.length) * 100;
@@ -145,10 +160,22 @@ function QuizRoom() {
     }
   };
 
+  const lottieOptions = {
+    loop: true, // Stop animation at last stage
+    autoplay: true,
+    animationData: gears,
+    rendererSettings: { preserveAspectRatio: "xMidYMid slice" },
+  };
+
   let content;
 
   if (loading) {
-    content = <p>Generating questions...</p>;
+    content = (
+      <>
+        <Lottie options={lottieOptions} height={250} width={250} />
+        <p>Generating questions...</p>
+      </>
+    );
   } else if (quiz.length === 0) {
     content = <p>No questions available.</p>;
   } else if (completed) {
@@ -181,12 +208,12 @@ function QuizRoom() {
             {quiz.map((q, index) => (
               <div
                 key={index}
-                className="border p-4 rounded-lg shadow-md bg-gray-100"
+                className="border p-4 rounded-xl shadow-md bg-slate-100"
               >
-                <p className="font-semibold text-lg text-gray-800">
+                <p className="font-700 text-lg text-gray-800">
                   {index + 1}. {q.question}
                 </p>
-                <p className="text-green-600 font-semibold mt-1">
+                <p className="text-green-600 font-700 mt-1">
                   Correct Answer: {q.correctAnswer}
                 </p>
 
@@ -241,13 +268,23 @@ function QuizRoom() {
   } else {
     content = (
       <>
+        {/* Progress Bar */}
+        <div className="w-full max-w-[90vw] md:max-w-[50vw] h-2 bg-gray-300 rounded-full my-4 relative">
+          <div
+            className="bg-primary h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${((currentIndex + 1) / quiz.length) * 100}%`,
+            }}
+          ></div>
+        </div>
         {/* Question Display */}
         <div
-          className="w-[90vw] relative md:max-w-[50vw] h-[300px] md:h-[400px] 
-                      flex items-center justify-center p-6 sm:p-8 
-                      bg-white text-primary shadow-lg rounded-xl 
-                      text-center text-2xl sm:text-3xl md:text-4xl font-bold
-                      break-words overflow-hidden"
+          className={`w-[90vw] relative md:max-w-[50vw] h-[300px] md:h-[400px] 
+              flex items-center justify-center p-6 sm:p-8 
+              ${flashColor} transition-colors duration-500
+              text-primary shadow-lg rounded-xl 
+              text-center text-2xl sm:text-3xl md:text-4xl font-bold
+              break-words overflow-hidden`}
         >
           <div className="max-h-full overflow-auto">
             {/* Quiz Progress */}
@@ -323,8 +360,11 @@ function QuizRoom() {
   return (
     <div className=" bg-gray-100">
       <Header />
-      <h1 className="text-2xl font-[700] text-primary m-6">Quiz Room</h1>
-
+      <div className="w-fit" onClick={() => navigate(-1)}>
+        <h1 className="text-base cursor-pointer items-center gap-2 flex font-[700] text-primary m-6">
+          <FaArrowLeftLong /> Quiz Room
+        </h1>
+      </div>
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         {content}
       </div>

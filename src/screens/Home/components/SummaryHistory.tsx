@@ -154,7 +154,7 @@ function SummaryHistory() {
 
   const renderSummaryContent = () => {
     if (loading) {
-      return <p className="text-gray-500 text-center">Loading summaries...</p>;
+      return <p className="text-gray-500 text-center">Loading history...</p>;
     }
     if (error) {
       return <p className="text-red-500 text-center">{error}</p>;
