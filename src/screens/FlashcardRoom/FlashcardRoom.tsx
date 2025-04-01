@@ -9,7 +9,7 @@ import gears from "../../assets/gears.json";
 function FlashcardRoom() {
   const location = useLocation();
   const navigate = useNavigate();
-  const context = location.state?.context;
+  const context = location.state?.context || "No context provided.";
   const [flashcards, setFlashcards] = useState<
     { term: string; definition: string }[]
   >([]);

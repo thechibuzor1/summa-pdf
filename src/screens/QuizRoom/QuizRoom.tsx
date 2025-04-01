@@ -8,7 +8,7 @@ import { IoArrowForward } from "react-icons/io5";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import gears from "../../assets/gears.json";
 import Lottie from "react-lottie";
-import { FaRegClock } from "react-icons/fa6"
+import { FaRegClock } from "react-icons/fa6";
 
 const QUESTION_TIME_LIMIT = 30; // Each question gets 30 seconds
 
@@ -109,8 +109,8 @@ function QuizRoom() {
 
   const handleAnswer = (answer: string | boolean) => {
     const isCorrect =
-      String(quiz[currentIndex].correctAnswer).toLowerCase() ===
-      String(answer).toLowerCase();
+      String(quiz[currentIndex].correctAnswer).trim().toLowerCase() ===
+      String(answer).trim().toLowerCase();
 
     if (isCorrect) {
       setScore((prevScore) => prevScore + 1);
@@ -120,12 +120,7 @@ function QuizRoom() {
 
     setTimeout(() => {
       setFlashColor("bg-white");
-      if (currentIndex + 1 < quiz.length) {
-        setCurrentIndex((prev) => prev + 1);
-        setUserInput("");
-      } else {
-        setCompleted(true);
-      }
+      handleNextQuestion();
     }, 500);
   };
 
@@ -319,10 +314,9 @@ function QuizRoom() {
             <div className="text-lg font-semibold absolute top-0 right-5 text-gray-700 mt-4">
               {currentIndex + 1} / {quiz.length}
             </div>
-             
-              <div className="text-lg flex items-center gap-1 absolute top-0 left-5 font-semibold text-gray-700  mt-4">
-                <FaRegClock /> {timeLeft}
-          
+
+            <div className="text-lg flex items-center gap-1 absolute top-0 left-5 font-semibold text-gray-700  mt-4">
+              <FaRegClock /> {timeLeft}
             </div>
             {quiz[currentIndex].question}
           </div>
