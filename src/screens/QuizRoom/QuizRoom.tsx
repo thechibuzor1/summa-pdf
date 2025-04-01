@@ -8,6 +8,9 @@ import { IoArrowForward } from "react-icons/io5";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import gears from "../../assets/gears.json";
 import Lottie from "react-lottie";
+import { FaRegClock } from "react-icons/fa6"
+
+const QUESTION_TIME_LIMIT = 30; // Each question gets 30 seconds
 
 type Question = {
   question: string;
@@ -29,6 +32,14 @@ function QuizRoom() {
   const [userInput, setUserInput] = useState("");
 
   const [flashColor, setFlashColor] = useState<string>("bg-white");
+
+  const [timeLeft, setTimeLeft] = useState(QUESTION_TIME_LIMIT);
+
+  useEffect(() => {
+    if (!completed) {
+      setTimeLeft(QUESTION_TIME_LIMIT);
+    }
+  }, [currentIndex, completed]);
 
   const fetchQuiz = async () => {
     try {
@@ -62,6 +73,23 @@ function QuizRoom() {
       setLoading(false);
     }
   };
+  const handleNextQuestion = () => {
+    if (currentIndex + 1 < quiz.length) {
+      setCurrentIndex((prev) => prev + 1);
+      setUserInput("");
+    } else {
+      setCompleted(true);
+    }
+  };
+
+  useEffect(() => {
+    if (timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      handleNextQuestion();
+    }
+  }, [timeLeft]);
 
   // Fetch quiz on component mount
   useEffect(() => {
@@ -290,6 +318,11 @@ function QuizRoom() {
             {/* Quiz Progress */}
             <div className="text-lg font-semibold absolute top-0 right-5 text-gray-700 mt-4">
               {currentIndex + 1} / {quiz.length}
+            </div>
+             
+              <div className="text-lg flex items-center gap-1 absolute top-0 left-5 font-semibold text-gray-700  mt-4">
+                <FaRegClock /> {timeLeft}
+          
             </div>
             {quiz[currentIndex].question}
           </div>
